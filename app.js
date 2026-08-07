@@ -19,7 +19,6 @@
     for (let i = 1; i <= TOTAL; i++) {
       const page = document.createElement('div');
       page.className = 'page' + (i === 1 || i === TOTAL ? ' page-cover' : '');
-      if (i === 1 || i === TOTAL) page.dataset.density = 'hard';
       const img = document.createElement('img');
       img.src = `pages/page-${pad(i)}.jpg`;
       img.alt = `SIL Insurance Yearbook 2026 — page ${i}`;
@@ -52,6 +51,7 @@
     const page = Math.min(TOTAL, Math.max(1, index + 1));
     pageIndicator.textContent = `${page} / ${TOTAL}`;
     slider.value = page;
+    bookEl.classList.toggle('spread-view', index > 0 && index < TOTAL - 1);
     document.querySelectorAll('.thumb').forEach(t => t.classList.toggle('active', Number(t.dataset.page) === page));
     const active = document.querySelector('.thumb.active');
     if (active && thumbsPanel.classList.contains('open')) active.scrollIntoView({block:'nearest'});
@@ -84,11 +84,11 @@
       maxWidth: 756,
       minHeight: 406,
       maxHeight: 1024,
-      maxShadowOpacity: 0.42,
+      maxShadowOpacity: 0.18,
       showCover: true,
       mobileScrollSupport: false,
       useMouseEvents: true,
-      flippingTime: 720,
+      flippingTime: 680,
       drawShadow: true,
       autoSize: true,
       clickEventForward: true,
