@@ -1,153 +1,140 @@
 (() => {
   const TOTAL = 43;
-  // Requested sequence: original PDF pages 38,39,40 are placed before original page 37.
-  const PAGE_ORDER = [
-    ...Array.from({length:36},(_,i)=>i+1),
-    38,39,40,37,
-    41,42,43
-  ];
-
-  // Image-only numbering corrections requested for the reordered block.
-  // Original page 37 has its printed 36 replaced by 40, original page 40 gets a 39 badge.
-  const editedImage = new Map([[37,'page-37-edit.jpg'],[40,'page-40-edit.jpg']]);
-
-  const flipbookEl = document.getElementById('flipbook');
-  const bookWrap = document.getElementById('bookWrap');
-  const bookStage = document.getElementById('bookStage');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const thumbBtn = document.getElementById('thumbBtn');
-  const thumbPanel = document.getElementById('thumbPanel');
-  const thumbStrip = document.getElementById('thumbStrip');
+  const bookEl = document.getElementById('book');
+  const loading = document.getElementById('loading');
   const pageIndicator = document.getElementById('pageIndicator');
-  const zoomInBtn = document.getElementById('zoomInBtn');
-  const zoomOutBtn = document.getElementById('zoomOutBtn');
-  const fitBtn = document.getElementById('fitBtn');
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-
-  function imagePath(originalPage){
-    const file = editedImage.get(originalPage) || `page-${String(originalPage).padStart(2,'0')}.jpg`;
-    return `assets/pages/${file}`;
-  }
-
-  function buildPages(){
-    const frag = document.createDocumentFragment();
-    PAGE_ORDER.forEach((originalPage, displayIndex) => {
-      const page = document.createElement('div');
-      page.className = 'page';
-      page.dataset.density = 'soft';
-      page.dataset.originalPage = originalPage;
-      page.dataset.displayPage = displayIndex + 1;
-      const img = document.createElement('img');
-      img.src = imagePath(originalPage);
-      img.alt = `Yearbook page ${displayIndex + 1}`;
-      img.draggable = false;
-      img.loading = displayIndex < 6 ? 'eager' : 'lazy';
-      img.decoding = 'async';
-      page.appendChild(img);
-      frag.appendChild(page);
-    });
-    flipbookEl.appendChild(frag);
-  }
-
-  function buildThumbs(){
-    const frag = document.createDocumentFragment();
-    PAGE_ORDER.forEach((originalPage,index)=>{
-      const btn = document.createElement('button');
-      btn.className = 'thumb';
-      btn.type = 'button';
-      btn.dataset.index = index;
-      btn.setAttribute('aria-label',`Go to page ${index+1}`);
-      btn.innerHTML = `<div class="thumb-image"><img src="${imagePath(originalPage)}" alt="" loading="lazy"></div><div class="thumb-label">${index+1}</div>`;
-      btn.addEventListener('click',()=>pageFlip.flip(index));
-      frag.appendChild(btn);
-    });
-    thumbStrip.appendChild(frag);
-  }
-
-  buildPages();
-  buildThumbs();
-
-  const pageFlip = new St.PageFlip(flipbookEl, {
-    width: 756,
-    height: 1012,
-    size: 'stretch',
-    minWidth: 280,
-    maxWidth: 756,
-    minHeight: 375,
-    maxHeight: 1012,
-    maxShadowOpacity: 0.16,
-    showCover: true,
-    mobileScrollSupport: false,
-    usePortrait: true,
-    flippingTime: 720,
-    drawShadow: true,
-    autoSize: true,
-    clickEventForward: true,
-    useMouseEvents: true,
-    swipeDistance: 24,
-    showPageCorners: true,
-    disableFlipByClick: false
-  });
-
-  pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+  const slider = document.getElementById('pageSlider');
+  const thumbsPanel = document.getElementById('thumbsPanel');
+  const thumbsGrid = document.getElementById('thumbsGrid');
+  const bookStage = document.getElementById('bookStage');
+  const zoomLabel = document.getElementById('zoomLabel');
 
   let zoom = 1;
-  function setZoom(value){
-    zoom = Math.max(0.8,Math.min(2.2,value));
-    bookWrap.style.transform = `scale(${zoom})`;
-    bookStage.style.cursor = zoom > 1 ? 'grab' : 'default';
-  }
+  let pageFlip;
 
-  function updateUI(index = pageFlip.getCurrentPageIndex()){
-    const landscape = window.innerWidth > 800;
-    const isPortrait = !landscape;
-    let label;
-    if(index === 0 || isPortrait){
-      label = `${index + 1} / ${TOTAL}`;
-    }else{
-      const first = index + 1;
-      const second = Math.min(TOTAL, first + 1);
-      label = second > first ? `${first}–${second} / ${TOTAL}` : `${first} / ${TOTAL}`;
+  const pad = n => String(n).padStart(2, '0');
+
+  function buildPages() {
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= TOTAL; i++) {
+      const page = document.createElement('div');
+      page.className = 'page' + (i === 1 || i === TOTAL ? ' page-cover' : '');
+      if (i === 1 || i === TOTAL) page.dataset.density = 'hard';
+      const img = document.createElement('img');
+      img.src = `pages/page-${pad(i)}.jpg`;
+      img.alt = `SIL Insurance Yearbook 2026 — page ${i}`;
+      img.loading = i <= 4 ? 'eager' : 'lazy';
+      img.draggable = false;
+      page.appendChild(img);
+      frag.appendChild(page);
     }
-    pageIndicator.textContent = label;
-    prevBtn.disabled = index <= 0;
-    nextBtn.disabled = index >= TOTAL - 1;
-    document.querySelectorAll('.thumb').forEach((el,i)=>el.classList.toggle('active',i===index || (landscape && index>0 && i===index+1)));
-    const active = thumbStrip.querySelector('.thumb.active');
-    if(active && !thumbPanel.hidden) active.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+    bookEl.appendChild(frag);
   }
 
-  pageFlip.on('flip',e=>updateUI(e.data));
-  pageFlip.on('changeOrientation',()=>setTimeout(updateUI,0));
-  pageFlip.on('changeState',()=>{});
+  function buildThumbs() {
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= TOTAL; i++) {
+      const b = document.createElement('button');
+      b.className = 'thumb';
+      b.type = 'button';
+      b.dataset.page = i;
+      b.innerHTML = `<img loading="lazy" src="pages/page-${pad(i)}.jpg" alt="Page ${i}"><span>${i}</span>`;
+      b.addEventListener('click', () => {
+        pageFlip.flip(i - 1);
+        closeThumbs();
+      });
+      frag.appendChild(b);
+    }
+    thumbsGrid.appendChild(frag);
+  }
 
-  prevBtn.addEventListener('click',()=>pageFlip.flipPrev());
-  nextBtn.addEventListener('click',()=>pageFlip.flipNext());
+  function updateUI(index) {
+    const page = Math.min(TOTAL, Math.max(1, index + 1));
+    pageIndicator.textContent = `${page} / ${TOTAL}`;
+    slider.value = page;
+    document.querySelectorAll('.thumb').forEach(t => t.classList.toggle('active', Number(t.dataset.page) === page));
+    const active = document.querySelector('.thumb.active');
+    if (active && thumbsPanel.classList.contains('open')) active.scrollIntoView({block:'nearest'});
+  }
 
-  thumbBtn.addEventListener('click',()=>{
-    thumbPanel.hidden = !thumbPanel.hidden;
-    thumbBtn.setAttribute('aria-expanded', String(!thumbPanel.hidden));
-    updateUI();
-  });
+  function openThumbs() {
+    thumbsPanel.classList.add('open');
+    thumbsPanel.setAttribute('aria-hidden', 'false');
+  }
+  function closeThumbs() {
+    thumbsPanel.classList.remove('open');
+    thumbsPanel.setAttribute('aria-hidden', 'true');
+  }
 
-  zoomInBtn.addEventListener('click',()=>setZoom(zoom+0.15));
-  zoomOutBtn.addEventListener('click',()=>setZoom(zoom-0.15));
-  fitBtn.addEventListener('click',()=>setZoom(1));
+  function setZoom(next) {
+    zoom = Math.min(1.5, Math.max(.7, next));
+    bookStage.style.transform = `scale(${zoom})`;
+    zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+  }
 
-  fullscreenBtn.addEventListener('click',async()=>{
-    try{
-      if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+  async function init() {
+    buildPages();
+    buildThumbs();
+
+    pageFlip = new St.PageFlip(bookEl, {
+      width: 756,
+      height: 1024,
+      size: 'stretch',
+      minWidth: 300,
+      maxWidth: 756,
+      minHeight: 406,
+      maxHeight: 1024,
+      maxShadowOpacity: 0.42,
+      showCover: true,
+      mobileScrollSupport: false,
+      useMouseEvents: true,
+      flippingTime: 720,
+      drawShadow: true,
+      autoSize: true,
+      clickEventForward: true,
+      usePortrait: true,
+      startZIndex: 0,
+      showPageCorners: true,
+      disableFlipByClick: false
+    });
+
+    pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+    pageFlip.on('flip', e => updateUI(e.data));
+    pageFlip.on('changeOrientation', () => setTimeout(() => pageFlip.update(), 80));
+    pageFlip.on('init', e => updateUI(e.data.page));
+    loading.style.display = 'none';
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => pageFlip.flipPrev());
+  document.getElementById('nextBtn').addEventListener('click', () => pageFlip.flipNext());
+  document.getElementById('prevBottom').addEventListener('click', () => pageFlip.flipPrev());
+  document.getElementById('nextBottom').addEventListener('click', () => pageFlip.flipNext());
+  document.getElementById('thumbsBtn').addEventListener('click', () => thumbsPanel.classList.contains('open') ? closeThumbs() : openThumbs());
+  document.getElementById('closeThumbs').addEventListener('click', closeThumbs);
+  slider.addEventListener('input', () => pageFlip.flip(Number(slider.value) - 1));
+  document.getElementById('zoomIn').addEventListener('click', () => setZoom(zoom + .1));
+  document.getElementById('zoomOut').addEventListener('click', () => setZoom(zoom - .1));
+  document.getElementById('fullscreenBtn').addEventListener('click', async () => {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
       else await document.exitFullscreen();
-    }catch(e){ console.warn('Fullscreen unavailable',e); }
+    } catch (_) {}
   });
 
-  document.addEventListener('keydown',e=>{
-    if(e.key==='ArrowLeft'){ e.preventDefault(); pageFlip.flipPrev(); }
-    if(e.key==='ArrowRight'){ e.preventDefault(); pageFlip.flipNext(); }
-    if(e.key==='Escape' && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') pageFlip.flipNext();
+    if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+    if (e.key === 'Escape') closeThumbs();
   });
 
-  window.addEventListener('resize',()=>setTimeout(updateUI,100));
-  updateUI(0);
+  let x0 = null;
+  bookStage.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, {passive:true});
+  bookStage.addEventListener('touchend', e => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 48) dx < 0 ? pageFlip.flipNext() : pageFlip.flipPrev();
+    x0 = null;
+  }, {passive:true});
+
+  init();
 })();
