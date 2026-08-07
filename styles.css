@@ -41,12 +41,15 @@ button, input { font: inherit; }
 .book-stage {
   width: min(92vw, 1180px); height: calc(100% - 24px); display: grid; place-items: center; position: relative;
   transform-origin: center center; transition: transform .18s ease;
+  perspective: 2200px;
 }
 
 /* Thin premium brochure — deliberately avoids hardcover/page-stack thickness. */
 .book {
   position: relative;
-  filter: drop-shadow(0 13px 16px rgba(0,0,0,.30));
+  transform: rotateX(1.15deg);
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 18px 20px rgba(0,0,0,.38));
 }
 
 /* Subtle base shadow only: makes the open brochure feel like it is resting on a surface. */
@@ -55,11 +58,11 @@ button, input { font: inherit; }
   position: absolute;
   left: 3%;
   right: 3%;
-  bottom: -10px;
-  height: 13px;
+  bottom: -15px;
+  height: 20px;
   border-radius: 50%;
-  background: rgba(0,0,0,.20);
-  filter: blur(8px);
+  background: rgba(0,0,0,.30);
+  filter: blur(11px);
   pointer-events: none;
   z-index: -1;
 }
@@ -71,18 +74,18 @@ button, input { font: inherit; }
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 18px;
+  width: 34px;
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 9999;
   background: linear-gradient(
     to right,
     rgba(0,0,0,0) 0%,
-    rgba(0,0,0,.035) 27%,
-    rgba(0,0,0,.13) 46%,
-    rgba(255,255,255,.28) 49%,
-    rgba(24,24,24,.18) 51%,
-    rgba(0,0,0,.065) 63%,
+    rgba(0,0,0,.03) 18%,
+    rgba(0,0,0,.16) 43%,
+    rgba(255,255,255,.32) 49%,
+    rgba(12,12,12,.23) 52%,
+    rgba(0,0,0,.07) 72%,
     rgba(0,0,0,0) 100%
   );
 }
@@ -115,6 +118,16 @@ button, input { font: inherit; }
 .stf__item.--right .page {
   box-shadow: none;
 }
+.stf__item.--left .page {
+  border-radius: 7px 1px 2px 8px;
+  transform-origin: right center;
+  transform: perspective(1800px) rotateY(.65deg);
+}
+.stf__item.--right .page {
+  border-radius: 1px 7px 8px 2px;
+  transform-origin: left center;
+  transform: perspective(1800px) rotateY(-.65deg);
+}
 .stf__item.--left .page::before,
 .stf__item.--right .page::before {
   content: "";
@@ -127,11 +140,13 @@ button, input { font: inherit; }
 }
 .stf__item.--left .page::before {
   right: 0;
-  background: linear-gradient(to left, rgba(0,0,0,.095), rgba(0,0,0,.025) 45%, transparent);
+  width: 34px;
+  background: linear-gradient(to left, rgba(0,0,0,.19), rgba(0,0,0,.055) 42%, transparent);
 }
 .stf__item.--right .page::before {
   left: 0;
-  background: linear-gradient(to right, rgba(0,0,0,.095), rgba(0,0,0,.025) 45%, transparent);
+  width: 34px;
+  background: linear-gradient(to right, rgba(0,0,0,.19), rgba(0,0,0,.055) 42%, transparent);
 }
 
 .loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: var(--muted); font-size: 13px; }
