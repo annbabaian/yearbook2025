@@ -12,9 +12,10 @@
   <main class="app" id="app">
     <header class="topbar">
       <a class="brand" href="https://silinsurance.am" aria-label="SIL Insurance home">
-        <span class="brand-sil">Sil</span><span class="brand-insurance">insurance</span>
+        <img class="brand-logo" src="logo.png" alt="SIL Insurance">
       </a>
       <div class="title-wrap">
+        <div class="doc-title">Yearbook 2026</div>
         <div class="page-indicator" id="pageIndicator">1 / 43</div>
       </div>
       <div class="top-actions">
@@ -24,9 +25,6 @@
         <button class="icon-btn" id="fullscreenBtn" aria-label="Fullscreen" title="Fullscreen">
           <svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <a class="icon-btn" href="yearbook.pdf" download aria-label="Download PDF" title="Download PDF">
-          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
       </div>
     </header>
 
@@ -39,7 +37,11 @@
     </aside>
 
     <section class="viewer-shell">
-      <button class="nav nav-left" id="prevBtn" aria-label="Previous page">‹</button>
+      <button class="nav nav-left" id="prevBtn" aria-label="Previous page" title="Previous page">
+        <svg class="turn-arrow" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M38 34C34 23 26 17 11 17M11 17L19 9M11 17L20 25" />
+        </svg>
+      </button>
       <div class="book-stage" id="bookStage">
         <div id="book" class="book"></div>
         <div class="loading" id="loading">
@@ -47,7 +49,11 @@
           <span>Loading yearbook…</span>
         </div>
       </div>
-      <button class="nav nav-right" id="nextBtn" aria-label="Next page">›</button>
+      <button class="nav nav-right" id="nextBtn" aria-label="Next page" title="Next page">
+        <svg class="turn-arrow" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M10 34C14 23 22 17 37 17M37 17L29 9M37 17L28 25" />
+        </svg>
+      </button>
     </section>
 
     <footer class="toolbar">
